@@ -15,7 +15,7 @@ ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 
 client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
-SYSTEM_PROMPT = """Sos un asistente experto en prop firms y trading profesional..."""
+SYSTEM_PROMPT = """Sos un asistente experto en prop firms (empresas de fondeo) y trading profesional..."""
 
 user_histories = {}
 
@@ -41,7 +41,7 @@ async def ask_claude(user_id: int, message: str) -> str:
 
     try:
         response = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+            model="claude-3-sonnet-20240229",  # ✅ modelo compatible
             max_tokens=1000,
             system=SYSTEM_PROMPT,
             messages=history
@@ -83,7 +83,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     text = (
         f"👋 Hola {user.first_name}!\n\n"
-        "Soy tu asistente de prop firms.\n\n"
+        "Soy tu asistente especializado en prop firms y trading.\n\n"
         "Escribime o usá los botones 👇"
     )
 
@@ -113,18 +113,15 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if data == "cmd_reset":
         clear_history(user_id)
-        await query.message.reply_text(
-            "🔄 Reiniciado",
-            reply_markup=main_keyboard()
-        )
+        await query.message.reply_text("🔄 Conversación reiniciada", reply_markup=main_keyboard())
         return
 
     prompts = {
-        "cmd_challenge": "Estrategias para pasar challenge rápido",
-        "cmd_riesgo": "Gestión de riesgo en prop firm",
-        "cmd_colchon": "Cómo hacer colchón en prop firm",
-        "cmd_comparar": "Comparar prop firms",
-        "cmd_scam": "Señales de scam en prop firms",
+        "cmd_challenge": "Dame estrategias para pasar un challenge de prop firm rápido.",
+        "cmd_riesgo": "Explicame la gestión de riesgo en una prop firm según winrate.",
+        "cmd_colchon": "Cómo crear un colchón de seguridad en una cuenta fondeada.",
+        "cmd_comparar": "Comparame las mejores prop firms actuales.",
+        "cmd_scam": "Señales de que una prop firm es scam.",
     }
 
     if data in prompts:
