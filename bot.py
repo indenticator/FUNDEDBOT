@@ -41,7 +41,7 @@ async def ask_claude(user_id: int, message: str) -> str:
 
     try:
         response = client.messages.create(
-            model="claude-3-haiku-20240307",  # ✅ modelo compatible
+            model="claude-haiku-4-5-20251001",  # ✅ modelo compatible
             max_tokens=1000,
             system=SYSTEM_PROMPT,
             messages=history
