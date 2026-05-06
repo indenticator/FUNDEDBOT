@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # =========================================================
-# TOKENS / API KEYS
+# ENV VARIABLES
 # =========================================================
 
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
@@ -44,264 +44,99 @@ client = anthropic.Anthropic(
 # =========================================================
 
 SYSTEM_PROMPT = """
-Sos un advisor profesional especializado en prop firms de futuros.
+Sos un advisor profesional especializado en prop firms y trading de futuros.
 
-Tu función es ayudar traders a:
+Ayudás traders a:
 
 - pasar challenges
-- proteger cuentas fondeadas
+- proteger cuentas
 - crear colchón
-- generar payouts consistentes
-- diversificar firms
-- administrar riesgo
+- generar payouts
+- administrar múltiples cuentas
+- controlar riesgo
 - evitar errores psicológicos
-- escalar cuentas de manera sostenible
 
-EMPRESAS PRINCIPALES:
-
-- Apex Trader Funding
+EMPRESAS:
+- Apex
 - Lucid Trading
-- TakeProfit Trader
+- TakeProfit
 - WallStreet Funded
 
 ==================================================
-FILOSOFIA PRINCIPAL
+REGLAS PRINCIPALES
 ==================================================
 
-Tu prioridad NO es hacer dinero rápido.
-
 Tu prioridad es:
-
 1. supervivencia
 2. consistencia
 3. payouts sostenibles
-4. escalado inteligente
 
-Nunca promuevas:
+Nunca recomendar:
 - revenge trading
-- martingala extrema
 - overtrading
+- martingala extrema
 - gambling
-- recuperar pérdidas emocionalmente
-
-==================================================
-COMPORTAMIENTO DEL BOT
-==================================================
-
-Hablás como:
-- trader profesional
-- asesor de riesgo
-- consultor de capital
-- experto en firms
-
-Las respuestas deben ser:
-- directas
-- estratégicas
-- prácticas
-- profesionales
-
-NO responder como ChatGPT genérico.
-
-Siempre estructurar respuestas de forma clara.
-
-Usar:
-- títulos
-- bullets
-- pasos accionables
-- ejemplos prácticos
 
 ==================================================
 GESTION DE RIESGO
 ==================================================
 
-Si un trader arranca el día en -1%:
+Si trader arranca -1%:
 
-- recomendar bajar size 50%
-- máximo 1 setup más
-- operar solo setups A+
-- si vuelve a perder -> cerrar plataforma
+- bajar size 50%
+- máximo 1 trade más
+- operar solo setup A+
+- si pierde nuevamente -> cerrar plataforma
 
-Explicar:
-
-"Perder 1% no destruye una cuenta.
-Intentar recuperarlo emocionalmente sí."
-
---------------------------------------------------
-
-Si trader rompe varias cuentas:
+Si trader rompe cuentas:
 
 ACTIVAR RECOVERY MODE:
+- 1 contrato
+- máximo 2 trades
+- reducir riesgo
+- evitar operar emocional
 
-- operar 1 contrato
-- máximo 2 trades por día
-- solo setups A+
-- prohibido revenge trading
-- no abrir nuevas cuentas hasta estabilizarse
-
---------------------------------------------------
-
-Si trader hace +2% temprano:
-
-- recomendar proteger ganancias
-- priorizar consistencia
-- sugerir cerrar el día
+Si trader hace +2% rápido:
+- proteger ganancias
+- considerar cerrar el día
 
 ==================================================
 COLCHON
 ==================================================
 
-Explicar que:
+Explicar siempre:
 
 "El colchón no es ganancia.
 El colchón es protección."
-
-El bot debe enseñar:
-
-- cómo separarse del trailing drawdown
-- cuándo escalar
-- cuándo NO pedir payout
-- cuándo bajar riesgo
-
-Ejemplo:
-
-Cuenta 50K:
-+300 = peligro
-+1500 = aceptable
-+3000 = buen colchón
-
-==================================================
-MULTI ACCOUNT MANAGEMENT
-==================================================
-
-Si trader tiene poco capital:
-
-Ayudarlo a diversificar entre firms.
-
-Ejemplo para 1000 USD:
-
-- Apex: 5 cuentas
-- Lucid: 5 cuentas
-- TakeProfit: 5 cuentas
-
-Explicar:
-
-- cuáles vincular
-- cuáles operar agresivo
-- cuáles operar conservador
-- cómo separar cuentas fuertes y débiles
-
-==================================================
-ESTRATEGIAS DE PAYOUT
-==================================================
-
-Priorizar:
-
-- payouts pequeños y frecuentes
-- estabilidad
-- supervivencia
-
-Explicar que:
-
-"10 payouts de 1000 son mejores
-que buscar uno de 10000 y romper cuentas."
-
-==================================================
-ANALISIS DE FIRMS
-==================================================
-
-APEX:
-- ideal para escalado
-- ideal para multiaccount
-- promociones frecuentes
-- riesgo de sobreoperar
-
-LUCID:
-- buena para traders consistentes
-- experiencia más profesional
-- mejor para estabilidad
-
-TAKEPROFIT:
-- buena para retiros rápidos
-- requiere disciplina
-
-WALLSTREET FUNDED:
-- útil para diversificar
-
-==================================================
-PSICOLOGIA DEL TRADER
-==================================================
-
-Detectar:
-- tilt
-- FOMO
-- revenge trading
-- sobreconfianza
-- miedo
-
-Si el trader está emocional:
-
-priorizar reducir riesgo antes que operar.
-
-==================================================
-PLANES SEGUN CAPITAL
-==================================================
-
-Si el usuario pregunta cuánto capital necesita:
-
-500 USD:
-- empezar conservador
-- pocas cuentas
-- priorizar supervivencia
-
-1000 USD:
-- diversificación multi-firm
-- mezcla de agresivo y conservador
-
-2500+ USD:
-- estructura profesional
-- cuentas de ingresos
-- cuentas de crecimiento
 
 ==================================================
 ESTILO DE RESPUESTA
 ==================================================
 
-Siempre explicar:
-- ventajas
-- riesgos
-- probabilidades
-- errores comunes
+Las respuestas deben ser:
+- rápidas
+- directas
+- accionables
+- profesionales
 
-Nunca responder corto.
+NO escribir texto innecesario.
 
-Siempre dar:
-- contexto
-- estrategia
-- plan accionable
+Usar:
+- títulos
+- bullets
+- pasos prácticos
 
-==================================================
-OBJETIVO FINAL
-==================================================
-
-Convertir traders impulsivos en traders consistentes.
-
-Ayudarlos a:
-- sobrevivir
-- cobrar payouts
-- escalar capital
-- administrar múltiples cuentas
-
-Siempre responder de forma clara,
-profesional y accionable.
+Máximo 300-500 palabras normalmente.
 """
 
 # =========================================================
-# HISTORIAL DE USUARIOS
+# USER MEMORY
 # =========================================================
 
 user_histories = {}
 
 def get_history(user_id):
+
     if user_id not in user_histories:
         user_histories[user_id] = []
 
@@ -311,7 +146,7 @@ def clear_history(user_id):
     user_histories[user_id] = []
 
 # =========================================================
-# CLAUDE REQUEST
+# ASK CLAUDE
 # =========================================================
 
 async def ask_claude(user_id: int, message: str) -> str:
@@ -328,16 +163,16 @@ async def ask_claude(user_id: int, message: str) -> str:
         ]
     })
 
-    # Limitar historial
-    if len(history) > 20:
-        history = history[-20:]
+    # Mantener historial liviano
+    if len(history) > 6:
+        history = history[-6:]
         user_histories[user_id] = history
 
     try:
 
         response = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=2000,
+            max_tokens=700,
             temperature=0.7,
             system=SYSTEM_PROMPT,
             messages=history
@@ -358,8 +193,14 @@ async def ask_claude(user_id: int, message: str) -> str:
         return reply
 
     except Exception as e:
-        logger.error(f"Claude API Error: {e}")
-        return f"❌ Error Claude API:\n{e}"
+
+        logger.error(f"Claude Error: {e}")
+
+        return f"""
+❌ Error Claude API
+
+{e}
+"""
 
 # =========================================================
 # KEYBOARD
@@ -371,32 +212,32 @@ def main_keyboard():
 
         [
             InlineKeyboardButton(
-                "📋 Pasar Challenge",
+                "📋 Challenge",
                 callback_data="cmd_challenge"
             ),
 
             InlineKeyboardButton(
-                "⚖️ Gestión de Riesgo",
+                "⚖️ Riesgo",
                 callback_data="cmd_riesgo"
             ),
         ],
 
         [
             InlineKeyboardButton(
-                "🛡️ Crear Colchón",
+                "🛡️ Colchón",
                 callback_data="cmd_colchon"
             ),
 
             InlineKeyboardButton(
-                "💰 Generar Payouts",
+                "💰 Payouts",
                 callback_data="cmd_payouts"
             ),
         ],
 
         [
             InlineKeyboardButton(
-                "🏢 Comparar Firms",
-                callback_data="cmd_comparar"
+                "🏢 Firms",
+                callback_data="cmd_firms"
             ),
 
             InlineKeyboardButton(
@@ -407,27 +248,22 @@ def main_keyboard():
 
         [
             InlineKeyboardButton(
-                "🚨 Recovery Mode",
+                "🚨 Recovery",
                 callback_data="cmd_recovery"
             ),
 
             InlineKeyboardButton(
                 "🧠 Psicología",
-                callback_data="cmd_psicologia"
+                callback_data="cmd_psico"
             ),
         ],
 
         [
             InlineKeyboardButton(
-                "🔍 Detectar Scam",
-                callback_data="cmd_scam"
-            ),
-
-            InlineKeyboardButton(
                 "🔄 Reiniciar",
                 callback_data="cmd_reset"
-            ),
-        ],
+            )
+        ]
     ]
 
     return InlineKeyboardMarkup(keyboard)
@@ -443,22 +279,21 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     clear_history(user.id)
 
     text = f"""
-👋 Hola {user.first_name}!
+👋 Hola {user.first_name}
 
-Soy tu advisor especializado en prop firms y gestión profesional de capital.
+Soy tu advisor especializado en prop firms.
 
 Puedo ayudarte con:
 
-✅ Pasar challenges
-✅ Gestión de riesgo
-✅ Multi cuentas
+✅ Challenges
+✅ Riesgo
 ✅ Payouts
 ✅ Colchón
+✅ Multi cuentas
 ✅ Recovery mode
 ✅ Psicología trader
-✅ Comparación de firms
 
-Escribime tu situación o usá los botones 👇
+Usá los botones o escribime tu situación 👇
 """
 
     await update.message.reply_text(
@@ -478,6 +313,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not text:
         return
 
+    # Mostrar "typing..."
     await context.bot.send_chat_action(
         chat_id=update.effective_chat.id,
         action="typing"
@@ -497,10 +333,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     query = update.callback_query
+
     await query.answer()
 
     user_id = query.from_user.id
     data = query.data
+
+    # typing...
+    await context.bot.send_chat_action(
+        chat_id=query.message.chat.id,
+        action="typing"
+    )
 
     # RESET
     if data == "cmd_reset":
@@ -518,95 +361,46 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         "cmd_challenge":
         """
-        Dame un plan profesional para pasar un challenge de prop firm.
-        Incluí:
-        - riesgo ideal
-        - tamaño de posición
-        - errores comunes
-        - cómo evitar romper cuentas
-        - cómo crear consistencia
+        Dame una estrategia profesional para pasar un challenge rápido sin romper cuentas.
         """,
 
         "cmd_riesgo":
         """
         Explicame gestión de riesgo profesional para prop firms.
-        Incluí:
-        - riesgo por trade
-        - riesgo diario
-        - winrate
-        - relación riesgo beneficio
-        - cómo sobrevivir
         """,
 
         "cmd_colchon":
         """
-        Explicame cómo crear un colchón de seguridad en una cuenta fondeada.
+        Cómo crear colchón en una cuenta fondeada.
         """,
 
         "cmd_payouts":
         """
-        Cómo generar payouts consistentes en prop firms.
-        Incluí:
-        - estrategia
-        - frecuencia
-        - errores comunes
-        - cuándo retirar
+        Cómo generar payouts consistentes.
         """,
 
-        "cmd_comparar":
+        "cmd_firms":
         """
-        Comparame:
-        - Apex
-        - Lucid
-        - TakeProfit
-        - WallStreet Funded
-
-        Incluí:
-        - ventajas
-        - desventajas
-        - cuál conviene según trader
+        Comparame Apex, Lucid, TakeProfit y WallStreet Funded.
         """,
 
         "cmd_multi":
         """
-        Explicame cómo administrar múltiples cuentas de prop firms.
-        Incluí:
-        - vinculación
-        - diversificación
-        - riesgo
-        - escalado
+        Cómo administrar múltiples cuentas correctamente.
         """,
 
         "cmd_recovery":
         """
-        Entrá en Recovery Mode.
-
-        Explicá:
-        - cómo recuperarse después de romper cuentas
-        - cómo bajar riesgo
-        - cómo reconstruir consistencia
-        - cómo evitar tilt
+        Entrar en recovery mode después de romper cuentas.
         """,
 
-        "cmd_psicologia":
+        "cmd_psico":
         """
-        Explicame psicología profesional para traders de prop firms.
-        Detectá:
-        - FOMO
-        - revenge trading
-        - tilt
-        - sobreconfianza
-        """,
-
-        "cmd_scam":
-        """
-        Explicame cómo detectar si una prop firm es scam.
+        Psicología profesional para traders de prop firms.
         """
     }
 
     if data in prompts:
-
-        await query.message.reply_text("⏳ Procesando...")
 
         reply = await ask_claude(
             user_id,
