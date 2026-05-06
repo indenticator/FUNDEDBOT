@@ -1,3 +1,4 @@
+
 import os
 import logging
 import anthropic
@@ -642,7 +643,7 @@ async def ask_claude(user_id: int, message: str) -> str:
     try:
 
         response = client.messages.create(
-            model="claude-sonnet-4-6",
+            model="claude-haiku-4-5-20251001",
             max_tokens=700,
             temperature=0.7,
             system=SYSTEM_PROMPT,
