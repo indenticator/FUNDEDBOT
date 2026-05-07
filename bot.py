@@ -161,7 +161,7 @@ Hace backtesting. Si está fallando, vuelve a los gráficos a entender dónde es
 
 EL JOURNAL DE MAXI:
 Al cerrar el día Maxi anota en el journal todo lo que sintió durante el trade:
-- ¿Cómo me sentí? (confiado, con dudas, nervioso)
+- ¿Cómo me sentí hoy? (confiado, con dudas, nervioso)
 - ¿Qué vi exactamente en el gráfico para tomar el trade?
 - ¿Por qué lo tomé? ¿Estaba el setup completo?
 - ¿Cómo me sentí durante el trade? ¿Y al cerrarlo?
