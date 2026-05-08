@@ -1,5 +1,6 @@
 import os
 import logging
+import base64
 import anthropic
 
 from telegram import (
@@ -161,7 +162,7 @@ Hace backtesting. Si está fallando, vuelve a los gráficos a entender dónde es
 
 EL JOURNAL DE MAXI:
 Al cerrar el día Maxi anota en el journal todo lo que sintió durante el trade:
-- ¿Cómo me sentí hoy? (confiado, con dudas, nervioso)
+- ¿Cómo me sentí? (confiado, con dudas, nervioso)
 - ¿Qué vi exactamente en el gráfico para tomar el trade?
 - ¿Por qué lo tomé? ¿Estaba el setup completo?
 - ¿Cómo me sentí durante el trade? ¿Y al cerrarlo?
@@ -304,9 +305,9 @@ Telegram renderiza Markdown de forma específica. Seguís estas reglas SIEMPRE:
 
 ESTRUCTURA VISUAL:
 - Cada respuesta arranca con una línea de título con emoji: "📊 Plan de retiro para $1.000" o "⚠️ Situación: -2% de drawdown"
-- Usás líneas separadoras con guiones para dividir secciones: "──────────────────"
-- Los títulos de sección van en MAYÚSCULAS simples, sin asteriscos ni símbolos raros
-- Dejás línea en blanco entre bloques de información para que respire
+- NUNCA usás líneas separadoras con guiones (──────) — se ven feas en Telegram
+- Los títulos de sección van en MAYÚSCULAS simples, sin asteriscos ni símbolos
+- Dejás UNA línea en blanco entre bloques para que respire — eso es suficiente
 
 LISTAS Y PASOS:
 - Para pasos numerados: "1." "2." "3." — nunca asteriscos
@@ -316,19 +317,19 @@ LISTAS Y PASOS:
 ÉNFASIS Y DESTACADOS:
 - Para destacar algo importante usás MAYÚSCULAS en la palabra clave, no asteriscos
 - Para números clave los ponés solos en su línea: "→ Retiro estimado: $1.200"
-- Las fórmulas y cálculos van con flecha y resultado claro: "Riesgo = $500 → 2 contratos ES"
+- Las fórmulas y cálculos van con flecha y resultado claro: "Riesgo = $500 → 2 contratos NQ"
 
 RESPUESTAS CORTAS (consultas simples):
 - Máximo 8-10 líneas
-- Sin separadores, flujo natural de texto
+- Flujo natural de texto, como una conversación
 - Terminás con una pregunta o próximo paso concreto
 
 RESPUESTAS LARGAS (planes, comparativas, situaciones):
-- Usás bloques bien separados con título + contenido
-- Ejemplo de estructura:
+- Usás bloques separados con título + contenido y línea en blanco entre ellos
+- Ejemplo de estructura correcta:
 
 📋 PLAN PARA $1.000
-──────────────────
+
 DISTRIBUCIÓN DE CUENTAS
 ✅ 3 cuentas Apex $50k — operación conservadora
 ✅ 2 cuentas Lucid $50k — operación moderada
@@ -342,13 +343,13 @@ GESTIÓN DEL RIESGO
 RETIRO ESTIMADO
 → Primer retiro posible: 2-3 semanas
 → Mensual estabilizado: $1.500 - $4.000
-──────────────────
 
 LO QUE NUNCA HACÉS:
 - Nunca empezás una respuesta con "¡Claro!" o "¡Por supuesto!" — es relleno
-- Nunca usás **texto entre asteriscos dobles** para negrita — Telegram a veces lo muestra como asteriscos literales
+- Nunca usás **texto entre asteriscos dobles** — se ven como asteriscos literales en Telegram
+- Nunca usás líneas de guiones (────) como separadores — se ven como basura visual
 - Nunca tirás bloques de texto sin estructura cuando la respuesta tiene más de 5 líneas
-- Nunca usás guiones bajos _así_ para itálicas en respuestas largas — se ve raro
+- Nunca usás guiones bajos _así_ para itálicas — se ve raro
 - Nunca ponés más de 2 emojis seguidos en una línea
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1088,7 +1089,7 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         "cmd_firms":
         """
-        Comparame Apex, Lucid, TakeProfit y WallStreet Funded.
+        Comparame Apex Trader Funding, Lucid Trading y Take Profit Trader en detalle.
         """,
 
         "cmd_multi":
@@ -1119,6 +1120,84 @@ async def button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=main_keyboard()
         )
 
+
+# =========================================================
+# HANDLE PHOTO
+# =========================================================
+
+async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    user_id = update.effective_user.id
+
+    if user_id not in user_histories:
+        user_histories[user_id] = []
+
+    # Foto en maxima resolucion
+    photo = update.message.photo[-1]
+    file = await context.bot.get_file(photo.file_id)
+    image_bytes = await file.download_as_bytearray()
+    image_base64 = base64.b64encode(image_bytes).decode("utf-8")
+
+    # Texto que mando junto con la foto
+    caption = update.message.caption or "Analizá este grafico segun la metodologia. Decime si el setup es valido o no y por que."
+
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action="typing"
+    )
+
+    history = get_history(user_id)
+
+    history.append({
+        "role": "user",
+        "content": [
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": "image/jpeg",
+                    "data": image_base64
+                }
+            },
+            {
+                "type": "text",
+                "text": caption
+            }
+        ]
+    })
+
+    if len(history) > 6:
+        history = history[-6:]
+        user_histories[user_id] = history
+
+    try:
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=700,
+            temperature=0.7,
+            system=SYSTEM_PROMPT,
+            messages=history
+        )
+
+        reply = response.content[0].text
+
+        history.append({
+            "role": "assistant",
+            "content": [{"type": "text", "text": reply}]
+        })
+
+        await update.message.reply_text(
+            reply,
+            reply_markup=main_keyboard()
+        )
+
+    except Exception as e:
+        logger.error(f"Photo Error: {e}")
+        await update.message.reply_text(
+            "No pude analizar la imagen. Describime con palabras lo que ves y te ayudo igual.",
+            reply_markup=main_keyboard()
+        )
+
 # =========================================================
 # MAIN
 # =========================================================
@@ -1139,6 +1218,13 @@ def main():
         MessageHandler(
             filters.TEXT & ~filters.COMMAND,
             handle_message
+        )
+    )
+
+    app.add_handler(
+        MessageHandler(
+            filters.PHOTO,
+            handle_photo
         )
     )
 
